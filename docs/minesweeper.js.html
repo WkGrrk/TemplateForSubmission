@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>minesweeper.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">minesweeper.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// empty_board
+//     level(1,2,3)
+//     level 1, 8 X 8, - 10
+//     level 2, 16 * 16 - 40
+//     level 3, 32 * 16 - 99
+
+function MineSweeper(level) {
+    this._covers = []; // c not open, 2 Flag, 3 Question Mark
+    this._board = []; // 9 Mine; 0 Space; > 0 total mines around itself
+    this._level = level;
+    this._width = 0;
+    this._height = 0;
+    this._totalMines = 0;
+    this._is_ended = false;
+    this.init();
+}
+
+// 根据Level来初始化，Width, Height, totalMines;  Cover &amp; Board, 并将其全部设置为0
+MineSweeper.prototype.init = function() {
+    if (this._level == 1) {
+        this._width = 8;
+        this._height = 8;
+        this._totalMines = 10;
+        this._is_ended = false;
+    }
+
+    for (let i = 0; i &lt; this._height; i++) {
+        let cur_board = [];
+        let cur_covers = [];
+        for (let j= 0; j &lt; this._width; j++) {
+            cur_board.push(0);
+            cur_covers.push("c");
+        }
+        this._board.push(cur_board);
+        this._covers.push(cur_covers);
+    }
+}
+
+
+const direction_vectors = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+];
+
+/**
+ * Create a 8x8 Board.
+ * Optionally with a specified width and height,
+ * otherwise returns a standard 8 wide, 8 high board.
+ * @memberof MineSweeper
+ * @function
+ * @param {number} y The y coordinate of first click.
+ * @param {number} x The x corrdinate of first click.
+ * @returns {void} An empty board for starting a game.
+ */
+// 定死一个 8x8 的棋盘， 并以固定点开始，例如（0，0）。然后更新 Cover &amp; Board的数据。
+MineSweeper.prototype.randomGenerate = function(x, y) {
+    this._board[0][2] = 9;
+    this._board[0][4] = 9;
+    this._board[0][5] = 9;
+    this._board[1][5] = 9;
+    this._board[2][0] = 9;
+    this._board[2][1] = 9;
+    this._board[2][3] = 9;
+    this._board[3][7] = 9;
+    this._board[4][2] = 9;
+    this._board[6][4] = 9;
+    for (let i = 0; i &lt; this._height; i++) {
+        for (let j = 0; j &lt; this._width; j++) {
+            if (this._board[i][j] == 9) {
+                continue
+            }
+            let totalMine = 0;
+            for (let k = 0; k &lt; direction_vectors.length; k++) {
+                let x = i + direction_vectors[k][0];
+                let y = j + direction_vectors[k][1];
+    
+                if (x &lt; 0 || x >= this._height) {
+                    continue;
+                }
+    
+                if (y &lt; 0 || y >= this._width) {
+                    continue;
+                }
+    
+                if (this._board[x][y] == 9) {
+                    totalMine++;
+                }
+            }
+            this._board[i][j] = totalMine;
+        }
+    }
+    // TODO: Update Board, Total Number of Mines
+    // this._board[0][0] = this._board[9][0]
+    this.openSquare(x, y)
+}
+
+// 点开指定位置的格子并更新状态，如果点击位置为雷，则GameOver, Hint: Apply BFS
+MineSweeper.prototype.openSquare = function(x, y) {
+    // if (this._board[x][y] !== 9) {
+    //     this._covers[x][y] = 0
+    // } 
+    // return this._covers
+    // TODO: Update Cover
+}
+
+// Return is_ended
+MineSweeper.prototype.is_ended = function() {
+    return this._is_ended;
+}
+
+// return board
+MineSweeper.prototype.get_board = function() {
+    return this._board;
+}
+
+// Return Cover
+MineSweeper.prototype.get_cover = function() {
+    return this._covers
+}
+
+// print board to Console
+MineSweeper.prototype.print_board = function() {
+    for (let i = 0; i &lt; this._height; i++) {
+        let str_board = "";
+        for (let j = 0; j &lt; this._width; j++) {
+            if (this._board[i][j] == 9) {
+                str_board += "@, ";
+            } else {
+                str_board += this._board[i][j] + ", ";
+            }
+        }
+        console.log(str_board)
+    }
+}
+
+// Out Cover to Console
+MineSweeper.prototype.print_convers = function() {
+    for (let i = 0; i &lt; this._height; i++) {
+        let str_board = "";
+        for (let j = 0; j &lt; this._width; j++) {
+            if (this._covers[i][j] == 0) {
+                str_board += "0, ";
+            } else {
+                str_board += this._covers[i][j] + ", ";
+            }
+        }
+        console.log(str_board)
+    }
+}
+
+// Out Board and Cover to Console
+MineSweeper.prototype.print_board_and_convers = function() {
+    console.log("====Board====")
+    this.print_board();
+    console.log("=============")
+    
+    console.log("====Cover====")
+    this.print_convers();
+    console.log("=============")
+    console.log("")
+}
+
+// Mark Square as Flag, Set Cover Vaule to ,2
+MineSweeper.prototype.mark_as_flag = function(x, y) {
+
+}
+
+// Mask Square as Question Mark, Set Cover Vaule to ,3
+MineSweeper.prototype.mark_as_question_mark = function(x, y) {
+
+}
+
+let board = new MineSweeper(1);
+board.randomGenerate(7, 7);
+// board.openASqure(7, 7)
+board.print_board_and_convers();
+// board.open(7, 7);
+// board.print_board_and_convers();
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Sun Jun 11 2023 15:16:58 GMT+0100 (英国夏令时间) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
